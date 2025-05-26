@@ -2,21 +2,8 @@
 import { useState, useEffect } from "react";
 import { useTodos } from "./store/useTodos";
 import { v4 as uuidv4 } from "uuid";
+import { getRequest, postRequest } from "./utils";
 import type { Todo } from "./types";
-
-// Create the promise outside the component
-const fetchTodo = async () => {
-	try {
-		const res = await fetch("http://localhost:3000/todos/api");
-		if (!res.ok) {
-			throw new Error("Failed to fetch todos");
-		}
-		return res.json();
-	} catch (error) {
-		console.log("Issue fetching data: " + error);
-		return [];
-	}
-};
 
 export default function TodoList() {
 	const [input, setInput] = useState("");
@@ -24,13 +11,12 @@ export default function TodoList() {
 	const [edit, setEdit] = useState<string | null>(null);
 	const { todos, addTodo, setTodos, updateTodo, deleteTodo } = useTodos();
 	useEffect(() => {
-		fetchTodo();
+		getRequest(setTodos);
 	}, []);
 
 	const handleAddTodo = () => {
 		if (!input.trim()) return;
-		const newTodo = { id: uuidv4(), title: input, completed: false };
-		addTodo(newTodo);
+		postRequest(input, addTodo);
 		setInput("");
 	};
 

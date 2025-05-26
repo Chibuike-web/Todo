@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import type { Todo } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
-const initialTodos: Todo[] = [
+const todos: Todo[] = [
 	{
 		id: uuidv4(),
 		title: "Buy groceries",
@@ -26,5 +26,22 @@ const initialTodos: Todo[] = [
 ];
 
 export async function GET() {
-	return NextResponse.json(initialTodos);
+	return NextResponse.json(todos);
+}
+
+export async function POST(request: Request) {
+	const body = await request.json();
+	const { title, completed = false } = body;
+	if (!title) {
+		return NextResponse.json({ error: "Title is required" }, { status: 400 });
+	}
+
+	const newTodo = {
+		id: uuidv4(),
+		title,
+		completed,
+	};
+
+	todos.push(newTodo);
+	return NextResponse.json(newTodo, { status: 201 });
 }
