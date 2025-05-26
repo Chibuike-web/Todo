@@ -52,7 +52,8 @@ export default function Todos() {
 			});
 
 			const data = await res.json();
-			editTodo(data.id, data.title);
+			const { todo } = data;
+			editTodo(todo.id, todo.title);
 		} catch (error) {
 			console.error(`Error editing todo with id: ${todoId} - ${error.message}`);
 		}
@@ -106,7 +107,6 @@ export default function Todos() {
 }
 
 const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
-	const [isChecked, setIsChecked] = useState("");
 	const { todos, deleteTodo, setTodos } = useTodos();
 
 	const deleteRequest = async (todoId, completed) => {
@@ -123,16 +123,20 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 			if (!res.ok) throw new Error("Failed to delete");
 
 			const data = await res.json();
-			deleteTodo(data.id);
+			const { todo } = data;
+			deleteTodo(todo.id);
 		} catch (error) {
 			console.error(`Error deleting todo with id: ${todoId} - ${error.message}`);
 		}
 	};
-	const handleDelete = (todoId) => {
-		isChecked && deleteRequest(todoId);
+	const handleDelete = (todoId, completed) => {
+		if (completed) {
+			deleteRequest(todoId, completed);
+		} else {
+			console.warn("Todo must be completed to delete.");
+		}
 	};
-	const handleCheck = (todoId, checked) => {
-		setIsChecked(checked);
+	const handleCheck = (todoId) => {
 		const newTodos = todos.map((todo) =>
 			todo.id == todoId ? { ...todo, completed: !todo.completed } : todo
 		);
@@ -150,15 +154,15 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 					type="checkbox"
 					checked={completed}
 					className="w-5 h-5"
-					onChange={(e) => handleCheck(id, e.target.checked)}
+					onChange={(e) => handleCheck(id)}
 				/>
 				<span className={`text-gray-700 ${completed && "line-through"}`}>{title}</span>
 			</div>
 			<div className="flex items-center gap-2">
 				<button
-					disabled={isChecked}
+					disabled={completed}
 					className={`${
-						isChecked
+						completed
 							? "text-gray-400 cursor-not-allowed"
 							: "text-blue-500 hover:text-blue-700 cursor-pointer"
 					}`}
@@ -170,7 +174,7 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 				<button
 					className="text-red-500 hover:text-red-700 cursor-pointer"
 					onClick={() => {
-						handleDelete(id);
+						handleDelete(id, completed);
 					}}
 				>
 					Delete

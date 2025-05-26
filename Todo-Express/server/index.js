@@ -73,20 +73,28 @@ app.put("/api/todos/", (req, res) => {
 	if (result.changes === 0) {
 		return res.status(404).json({ message: "Todo not found" });
 	}
-	res.json({ message: "Todo updated" });
+	const updatedTodo = db.prepare("SELECT * FROM todos WHERE id = ?").get(id);
+	res.json({ message: "Todo updated", todo: updatedTodo });
 });
 
 app.delete("/api/todos/", (req, res) => {
 	const { id, completed } = req.body;
 
-	const exists = todos.some((todo) => todo.id === id);
-	if (!exists) {
-		return res.status(404).json({ message: "Todo not found" });
+	if (completed !== true) {
+		return res.status(403).json({ error: "Todo must be completed to delete" });
 	}
 
-	const todo = todos.find((todo) => todo.id === id);
-	todos = todos.filter((todo) => todo.id !== id && todo.completed !== completed);
-	res.json(todo);
+	const getStmt = db.prepare("SELECT * FROM todos WHERE id = ? AND completed = 1");
+	const todo = getStmt.get(id);
+
+	if (!todo) {
+		return res.status(404).json({ error: "Completed todo not found" });
+	}
+
+	const deleteStmt = db.prepare("DELETE FROM todos WHERE id = ?");
+	deleteStmt.run(id);
+
+	res.status(201).json({ message: "Todo deleted", todo });
 });
 
 app.listen(PORT, () => {
