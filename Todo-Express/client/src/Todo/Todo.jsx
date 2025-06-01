@@ -32,6 +32,12 @@ export default function Todos() {
 					completed: false,
 				}),
 			});
+
+			if (!res.ok) {
+				const error = await res.json();
+				console.log(error.message);
+				return;
+			}
 			const data = await res.json();
 			addTodo(data);
 		} catch (error) {
@@ -116,15 +122,13 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					id: todoId,
-					completed: completed,
 				}),
 			});
 
 			if (!res.ok) throw new Error("Failed to delete");
 
 			const data = await res.json();
-			const { todo } = data;
-			deleteTodo(todo.id);
+			deleteTodo(todoId);
 		} catch (error) {
 			console.error(`Error deleting todo with id: ${todoId} - ${error.message}`);
 		}
@@ -136,14 +140,13 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 			console.warn("Todo must be completed to delete.");
 		}
 	};
-	const handleCheck = (todoId) => {
+	const handleCheck = (todoId, completed) => {
 		const newTodos = todos.map((todo) =>
 			todo.id == todoId ? { ...todo, completed: !todo.completed } : todo
 		);
 		setTodos(newTodos);
 
 		const title = todos.find((todo) => todo.id === todoId).title;
-		const completed = !todos.find((todo) => todo.id === todoId).completed;
 		putRequest(todoId, title, completed);
 	};
 
@@ -154,7 +157,7 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 					type="checkbox"
 					checked={completed}
 					className="w-5 h-5"
-					onChange={(e) => handleCheck(id)}
+					onChange={(e) => handleCheck(id, e.target.checked)}
 				/>
 				<span className={`text-gray-700 ${completed && "line-through"}`}>{title}</span>
 			</div>
