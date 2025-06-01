@@ -45,3 +45,16 @@ export async function POST(request: Request) {
 	todos.push(newTodo);
 	return NextResponse.json(newTodo, { status: 201 });
 }
+
+export async function PUT(request: Request) {
+	const body = await request.json();
+	const { id, title, completed } = body;
+	const todo = todos.find((todo) => todo.id === id);
+	if (todo) {
+		todo.title = title;
+		todo.completed = completed;
+		return NextResponse.json(todo || { error: "Todo updated" });
+	} else {
+		return NextResponse.json({ error: "Todo updated" });
+	}
+}

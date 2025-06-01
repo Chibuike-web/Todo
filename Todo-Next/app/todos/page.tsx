@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useTodos } from "./store/useTodos";
 import { v4 as uuidv4 } from "uuid";
-import { getRequest, postRequest } from "./utils";
+import { getRequest, postRequest, putRequest } from "./utils";
 import type { Todo } from "./types";
 
 export default function TodoList() {
@@ -27,7 +27,8 @@ export default function TodoList() {
 
 	const handleSave = (todoId?: string) => {
 		if (!todoId || !editInput.trim()) return;
-		updateTodo(todoId, editInput);
+		// updateTodo(todoId, editInput);
+		putRequest(updateTodo, todoId, editInput);
 		setEditInput("");
 		setEdit(null);
 	};
@@ -68,19 +69,21 @@ type TodoItem = Todo & {
 };
 
 const TodoItem = ({ id, title, completed, handleEdit }: TodoItem) => {
-	const [checked, setChecked] = useState(completed);
-	const { todos, deleteTodo, setTodos } = useTodos();
+	const { todos, deleteTodo, setTodos, updateTodo } = useTodos();
 
 	const handleDelete = (todoId: string) => {
 		deleteTodo(todoId);
 	};
 
-	const handleCheck = (todoId: string) => {
-		setChecked(!checked);
+	const handleCheck = (todoId: string, completed: boolean) => {
 		const newTodos = todos.map((todo) =>
 			todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
 		);
 		setTodos(newTodos);
+		const todo = todos.find((todo) => todo.id === todoId);
+		if (todo) {
+			putRequest(updateTodo, todoId, todo.title, completed);
+		}
 	};
 
 	return (
@@ -90,7 +93,7 @@ const TodoItem = ({ id, title, completed, handleEdit }: TodoItem) => {
 					type="checkbox"
 					className="w-5 h-5"
 					checked={completed}
-					onChange={() => handleCheck(id)}
+					onChange={(e) => handleCheck(id, e.target.checked)}
 				/>
 				<span className={`text-gray-700 ${completed ? "line-through" : ""}`}>{title}</span>
 			</div>

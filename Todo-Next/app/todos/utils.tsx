@@ -34,3 +34,27 @@ export const postRequest = async (title: string, addTodo: (newTodo: Todo) => voi
 		console.error("Issue adding todo", error);
 	}
 };
+
+export const putRequest = async (
+	updateTodo: (id: string, title: string) => void,
+	id: string,
+	title: string,
+	completed?: boolean
+) => {
+	try {
+		const res = await fetch("http://localhost:3000/todos/api", {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ id, title, completed }),
+		});
+
+		if (!res.ok) {
+			throw new Error("Failed to update todo");
+		}
+
+		const data = await res.json();
+		updateTodo(id, title);
+	} catch (error) {
+		console.error("Issue updating todo:", error);
+	}
+};
