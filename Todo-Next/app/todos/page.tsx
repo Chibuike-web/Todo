@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useTodos } from "./store/useTodos";
-import { v4 as uuidv4 } from "uuid";
-import { getRequest, postRequest, putRequest } from "./utils";
+import { deleteRequest, getRequest, postRequest, putRequest } from "./utils";
 import type { Todo } from "./types";
 
 export default function TodoList() {
@@ -27,7 +26,6 @@ export default function TodoList() {
 
 	const handleSave = (todoId?: string) => {
 		if (!todoId || !editInput.trim()) return;
-		// updateTodo(todoId, editInput);
 		putRequest(updateTodo, todoId, editInput);
 		setEditInput("");
 		setEdit(null);
@@ -71,8 +69,12 @@ type TodoItem = Todo & {
 const TodoItem = ({ id, title, completed, handleEdit }: TodoItem) => {
 	const { todos, deleteTodo, setTodos, updateTodo } = useTodos();
 
-	const handleDelete = (todoId: string) => {
-		deleteTodo(todoId);
+	const handleDelete = (todoId: string, completed: boolean) => {
+		if (!completed) {
+			console.log("The Todo must be completed first");
+			return;
+		}
+		deleteRequest(todoId, completed, deleteTodo);
 	};
 
 	const handleCheck = (todoId: string, completed: boolean) => {
@@ -99,14 +101,15 @@ const TodoItem = ({ id, title, completed, handleEdit }: TodoItem) => {
 			</div>
 			<div className="flex items-center gap-2">
 				<button
-					className="text-blue-500 hover:text-blue-700 cursor-pointer"
+					disabled={completed}
+					className="text-blue-500 hover:text-blue-700 disabled:cursor-none disabled:text-gray-300 cursor-pointer"
 					onClick={() => handleEdit(id, title)}
 				>
 					Edit
 				</button>
 				<button
 					className="text-red-500 hover:text-red-700 cursor-pointer"
-					onClick={() => handleDelete(id)}
+					onClick={() => handleDelete(id, completed)}
 				>
 					Delete
 				</button>

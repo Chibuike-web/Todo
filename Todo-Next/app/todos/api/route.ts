@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import type { Todo } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
-const todos: Todo[] = [
+let todos: Todo[] = [
 	{
 		id: uuidv4(),
 		title: "Buy groceries",
@@ -26,7 +26,7 @@ const todos: Todo[] = [
 ];
 
 export async function GET() {
-	return NextResponse.json(todos);
+	return NextResponse.json(todos, { status: 200 });
 }
 
 export async function POST(request: Request) {
@@ -50,11 +50,28 @@ export async function PUT(request: Request) {
 	const body = await request.json();
 	const { id, title, completed } = body;
 	const todo = todos.find((todo) => todo.id === id);
+
 	if (todo) {
 		todo.title = title;
 		todo.completed = completed;
-		return NextResponse.json(todo || { error: "Todo updated" });
+		return NextResponse.json(todo, { status: 200 });
 	} else {
-		return NextResponse.json({ error: "Todo updated" });
+		return NextResponse.json({ error: "Todo not found" }, { status: 404 });
 	}
+}
+
+export async function DELETE(request: Request) {
+	const body = await request.json();
+	const { id } = body;
+	if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
+
+	const todo = todos.find((todo) => todo.id === id);
+
+	if (!todo?.completed) {
+		return NextResponse.json({ error: "Todo must be completed" }, { status: 403 });
+	}
+
+	todos = todos.filter((todo) => todo.id !== id);
+
+	return NextResponse.json({ message: "Todo successfully deleted" }, { status: 200 });
 }

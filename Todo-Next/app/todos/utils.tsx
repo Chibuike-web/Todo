@@ -58,3 +58,29 @@ export const putRequest = async (
 		console.error("Issue updating todo:", error);
 	}
 };
+
+export const deleteRequest = async (
+	id: string,
+	completed: boolean,
+	deleteTodo: (id: string) => void
+) => {
+	try {
+		const res = await fetch("http://localhost:3000/todos/api", {
+			method: "DELETE",
+			headers: { "Content-Type": "/application/json" },
+			body: JSON.stringify({
+				id,
+				completed,
+			}),
+		});
+
+		if (!res.ok) {
+			const errorData = await res.json();
+			console.log(errorData.message || "Error fetching Data");
+		}
+
+		deleteTodo(id);
+	} catch (err) {
+		console.error("Issue deleting todo", err);
+	}
+};
