@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useTodos } from "./store/store";
+import { useError, useErrorId } from "./store/error";
 
 export default function Todos() {
 	const [input, setInput] = useState("");
 	const [editInput, setEditInput] = useState("");
 	const [edit, setEdit] = useState(null);
-
 	const { todos, addTodo, editTodo, setTodos } = useTodos();
 
 	useEffect(() => {
@@ -36,6 +36,7 @@ export default function Todos() {
 			if (!res.ok) {
 				const error = await res.json();
 				console.log(error.message);
+				alert(error.message);
 				return;
 			}
 			const data = await res.json();
@@ -114,7 +115,8 @@ export default function Todos() {
 
 const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 	const { todos, deleteTodo, setTodos } = useTodos();
-
+	const { errorId, setErrorId } = useErrorId();
+	const { error, setError } = useError();
 	const deleteRequest = async (todoId, completed) => {
 		try {
 			const res = await fetch("http://localhost:6565/api/todos", {
@@ -137,6 +139,8 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 		if (completed) {
 			deleteRequest(todoId, completed);
 		} else {
+			setErrorId(todoId);
+			setError("Todo must be completed to delete.");
 			console.warn("Todo must be completed to delete.");
 		}
 	};
@@ -145,45 +149,53 @@ const TodoItem = ({ id, title, completed, handleEdit, putRequest }) => {
 			todo.id == todoId ? { ...todo, completed: !todo.completed } : todo
 		);
 		setTodos(newTodos);
-
+		setError("");
+		setErrorId("");
 		const title = todos.find((todo) => todo.id === todoId).title;
 		putRequest(todoId, title, completed);
 	};
 
 	return (
-		<div id={`item ${id}`} className="flex items-center justify-between p-3 border rounded-xl">
-			<div className="flex items-center gap-2">
-				<input
-					type="checkbox"
-					checked={completed}
-					className="w-5 h-5"
-					onChange={(e) => handleCheck(id, e.target.checked)}
-				/>
-				<span className={`text-gray-700 ${completed && "line-through"}`}>{title}</span>
+		<article>
+			<div id={`item ${id}`} className="flex items-center justify-between p-3 border rounded-xl">
+				<div className="flex items-center gap-2">
+					<input
+						type="checkbox"
+						checked={completed}
+						className="w-5 h-5"
+						onChange={(e) => handleCheck(id, e.target.checked)}
+					/>
+					<span className={`text-gray-700 ${completed && "line-through"}`}>{title}</span>
+				</div>
+				<div className="flex items-center gap-2">
+					<button
+						disabled={completed}
+						className={`${
+							completed
+								? "text-gray-400 cursor-not-allowed"
+								: "text-blue-500 hover:text-blue-700 cursor-pointer"
+						}`}
+						onClick={() => handleEdit(id, title)}
+					>
+						{" "}
+						Edit
+					</button>
+					<button
+						className="text-red-500 hover:text-red-700 cursor-pointer"
+						onClick={() => {
+							handleDelete(id, completed);
+						}}
+					>
+						Delete
+					</button>
+				</div>
 			</div>
-			<div className="flex items-center gap-2">
-				<button
-					disabled={completed}
-					className={`${
-						completed
-							? "text-gray-400 cursor-not-allowed"
-							: "text-blue-500 hover:text-blue-700 cursor-pointer"
-					}`}
-					onClick={() => handleEdit(id, title)}
-				>
-					{" "}
-					Edit
-				</button>
-				<button
-					className="text-red-500 hover:text-red-700 cursor-pointer"
-					onClick={() => {
-						handleDelete(id, completed);
-					}}
-				>
-					Delete
-				</button>
-			</div>
-		</div>
+			{errorId === id && (
+				<p className="text-red-600 bg-red-100 border border-red-400 rounded px-4 py-2 text-sm mt-2">
+					{error}
+				</p>
+			)}
+		</article>
 	);
 };
 
