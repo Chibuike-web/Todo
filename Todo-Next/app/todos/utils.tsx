@@ -1,3 +1,4 @@
+import { useError, useErrorId } from "./store/useErrorStore";
 import type { Todo } from "./types";
 
 export const getRequest = async (setTodos: (newTodos: Todo[]) => void) => {
@@ -14,7 +15,11 @@ export const getRequest = async (setTodos: (newTodos: Todo[]) => void) => {
 	}
 };
 
-export const postRequest = async (title: string, addTodo: (newTodo: Todo) => void) => {
+export const postRequest = async (
+	title: string,
+	addTodo: (newTodo: Todo) => void,
+	setError: (value: string) => void
+) => {
 	try {
 		const res = await fetch("http://localhost:3000/todos/api", {
 			method: "POST",
@@ -24,14 +29,18 @@ export const postRequest = async (title: string, addTodo: (newTodo: Todo) => voi
 				completed: false,
 			}),
 		});
-		const data = await res.json();
 
 		if (!res.ok) {
-			throw new Error("Failed to add todo");
+			const errorData = await res.json();
+			setError(errorData.error || "Failed to add todo");
+			return;
 		}
+
+		const data = await res.json();
 		addTodo(data);
 	} catch (error) {
 		console.error("Issue adding todo", error);
+		setError("Failed to add todo due to network error");
 	}
 };
 

@@ -2,28 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import type { Todo } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
-let todos: Todo[] = [
-	{
-		id: uuidv4(),
-		title: "Buy groceries",
-		completed: false,
-	},
-	{
-		id: uuidv4(),
-		title: "Finish React project",
-		completed: false,
-	},
-	{
-		id: uuidv4(),
-		title: "Go for a walk",
-		completed: false,
-	},
-	{
-		id: uuidv4(),
-		title: "Apply for a Phd",
-		completed: false,
-	},
-];
+let todos: Todo[] = [];
 
 export async function GET() {
 	return NextResponse.json(todos, { status: 200 });
@@ -35,7 +14,10 @@ export async function POST(request: Request) {
 	if (!title) {
 		return NextResponse.json({ error: "Title is required" }, { status: 400 });
 	}
-
+	const exists = todos.some((todo) => todo.title === title);
+	if (exists) {
+		return NextResponse.json({ error: "Title has to be unique" }, { status: 400 });
+	}
 	const newTodo = {
 		id: uuidv4(),
 		title,
