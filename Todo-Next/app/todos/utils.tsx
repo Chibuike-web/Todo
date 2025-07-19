@@ -1,4 +1,3 @@
-import { useError, useErrorId } from "./store/useErrorStore";
 import type { Todo } from "./types";
 
 export const getRequest = async (setTodos: (newTodos: Todo[]) => void) => {

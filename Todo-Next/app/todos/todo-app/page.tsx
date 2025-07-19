@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useTodos } from "./store/useTodosStore";
-import { deleteRequest, getRequest, postRequest, putRequest } from "./utils";
-import type { Todo } from "./types";
-import { useError, useErrorId } from "./store/useErrorStore";
+import { useTodos } from "../store/useTodosStore";
+import { deleteRequest, getRequest, postRequest, putRequest } from "../utils";
+import type { Todo } from "../types";
+import { useError, useErrorId } from "../store/useErrorStore";
 
 export default function TodoList() {
 	const [input, setInput] = useState("");
@@ -85,7 +85,7 @@ const TodoItem = ({ id, title, completed, handleEdit }: TodoItem) => {
 
 	const handleCheck = (todoId: string, completed: boolean) => {
 		const newTodos = todos.map((todo) =>
-			todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+			todo.id === todoId ? { ...todo, completed: completed } : todo
 		);
 		setTodos(newTodos);
 		setError("");

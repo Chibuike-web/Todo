@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import type { Todo } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
+let users = [];
 let todos: Todo[] = [];
 
 export async function GET() {

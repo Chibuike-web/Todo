@@ -40,9 +40,9 @@ export default function Input() {
 								key={tag.id}
 								initial={{ opacity: 0, scale: 0.8 }}
 								animate={{ opacity: 1, scale: 1 }}
-								exit={{ opacity: 0, scale: 0.5 }}
-								transition={{ duration: 0.2 }}
-								className="bg-blue-500 pl-3 pr-1.5 py-1 rounded-full text-[14px] flex gap-2 items-center transition-all duration-300 ease-in-out transform hover:scale-105"
+								exit={{ opacity: 0, scale: 0.8 }}
+								transition={{ duration: 0.1 }}
+								className="bg-blue-500 pl-2 pr-1 py-1 rounded-full text-[14px] flex gap-2 items-center transition-all duration-300 ease-in-out transform hover:scale-105"
 								onClick={(e) => e.stopPropagation()}
 							>
 								{tag.label}
