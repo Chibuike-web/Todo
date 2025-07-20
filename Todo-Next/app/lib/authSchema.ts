@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const schema = z.object({
+export const authSchema = z.object({
 	email: z
 		.string()
 		.min(1, "Email is required")
@@ -12,4 +12,4 @@ export const schema = z.object({
 		.min(6, "Password must contain at least 6 character"),
 });
 
-export type FormData = z.infer<typeof schema>;
+export type FormData = z.infer<typeof authSchema>;
