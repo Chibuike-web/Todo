@@ -2,8 +2,7 @@ import { userSchema, UserType } from "@/app/lib/userSchema";
 import { NextResponse } from "next/server";
 import bycrpt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-
-let users: UserType[] = [];
+import { users } from "@/app/api/lib/fakeDB";
 
 // Sign in
 export async function POST(request: Request) {
@@ -28,8 +27,11 @@ export async function POST(request: Request) {
 		id: uuidv4(),
 		email,
 		password: hashedPassword,
+		todos: [],
 	};
 
 	users.push(newUser);
+	console.log(newUser);
+	console.log(users);
 	return NextResponse.json({ message: "User successfully registered" }, { status: 200 });
 }

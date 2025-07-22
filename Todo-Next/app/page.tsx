@@ -1,55 +1,72 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import { v4 as uuidv4 } from "uuid";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TodoType } from "./lib/todoSchema";
+import { useRouter } from "next/navigation";
+import { UserType } from "./lib/userSchema";
 
-const initialTodos: TodoType[] = [
-	{ id: uuidv4(), title: "Go for a walk", completed: false },
-	{ id: uuidv4(), title: "Go for a run", completed: false },
-	{ id: uuidv4(), title: "Go for breakfast", completed: false },
-	{ id: uuidv4(), title: "Go for lunch", completed: false },
-];
-
-// 🚀 Component
 export default function Home() {
 	const [todos, setTodos] = useState<TodoType[]>([]);
 	const [input, setInput] = useState("");
+	const [user, setUser] = useState<UserType | null>(null);
+
+	const router = useRouter();
 
 	useEffect(() => {
+		const storedUser = localStorage.getItem("user");
 		const storedTodos = localStorage.getItem("todos");
-		if (storedTodos) {
-			try {
-				const parsed = JSON.parse(storedTodos);
-				if (Array.isArray(parsed)) {
-					setTodos(parsed);
-				}
-			} catch {
-				console.warn("Invalid todos in localStorage");
+
+		if (!storedUser) {
+			router.push("/signup");
+			return;
+		}
+		if (!storedTodos) return;
+
+		const parsedUser = JSON.parse(storedUser);
+		if (!parsedUser) return;
+		setUser(parsedUser);
+
+		try {
+			const parsed = JSON.parse(storedTodos);
+			if (Array.isArray(parsed)) {
+				setTodos(parsed);
 			}
-		} else {
-			localStorage.setItem("todos", JSON.stringify(initialTodos));
-			setTodos(initialTodos);
+		} catch {
+			console.warn("Invalid todos in localStorage");
 		}
 	}, []);
 
 	useEffect(() => {
 		localStorage.setItem("todos", JSON.stringify(todos));
-	}, [todos]);
+		localStorage.setItem("user", JSON.stringify(user));
+	}, [todos, user]);
 
-	const handleAddTodo = () => {
+	const handleAddTodo = async () => {
 		if (input.trim().length === 0) return;
 
-		const newTodo: TodoType = {
-			title: input.trim(),
-			completed: false,
-		};
+		const title = input.trim();
 
-		setTodos((prev) => [...prev, newTodo]);
-		setInput("");
+		try {
+			const res = await fetch("/api/todos", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ id: user?.id, title: title }),
+			});
+			if (!res.ok) {
+				const errorData = await res.json();
+				if (res.status === 400) {
+					console.log(errorData.message);
+					return;
+				}
+				return;
+			}
+			const data = await res.json();
+			setTodos((prev) => [...prev, data.todo]);
+			setUser(data.user);
+			setInput("");
+		} catch (err) {}
 	};
 
 	return (

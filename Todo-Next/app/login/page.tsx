@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-
 import Link from "next/link";
 import { useToggleVisibility } from "../Hooks";
 import { authSchema, FormData } from "../lib/authSchema";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
 	const {
@@ -19,11 +18,38 @@ export default function Login() {
 		handleSubmit,
 		formState: { errors },
 	} = useForm({ resolver: zodResolver(authSchema) });
+	const router = useRouter();
 
 	const { toggleVisibility, handleToggleVisibility } = useToggleVisibility();
 
-	const onSubmit = (data: FormData) => {
-		console.log(data);
+	const onSubmit = async (data: FormData) => {
+		try {
+			const res = await fetch("/api/auth/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			});
+
+			if (!res.ok) {
+				const errorData = await res.json();
+				if (res.status === 400) {
+					console.log(errorData.message);
+					return;
+				} else if (res.status === 409) {
+					console.log(errorData.message);
+					router.push("/signup");
+					return;
+				}
+				return;
+			}
+			const authData = await res.json();
+			localStorage.setItem("user", JSON.stringify(authData.user));
+			console.log(authData.message);
+			reset();
+			router.push("/");
+		} catch (err) {
+			console.error("Isse authenticating user", err);
+		}
 	};
 
 	return (

@@ -1,9 +1,5 @@
-import { UserType } from "@/app/lib/userSchema";
 import { NextResponse } from "next/server";
-import bycrpt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
-
-let users: UserType[] = [];
+import { users } from "@/app/api/lib/fakeDB";
 
 // Log in
 export async function POST(request: Request) {
@@ -12,9 +8,13 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Missing inputs" }, { status: 400 });
 	}
 	const user = users.find((u) => u.email === email);
+	console.log(user);
 
 	if (!user)
 		return NextResponse.json({ message: "user doesn't exist. sign up instead" }, { status: 409 });
 
-	NextResponse.json({ message: "User successfully authenticated", user: user }, { status: 200 });
+	return NextResponse.json(
+		{ message: "User successfully authenticated", user: user },
+		{ status: 200 }
+	);
 }
